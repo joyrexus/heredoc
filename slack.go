@@ -43,7 +43,7 @@ func (response UsersResponse) Users() []User {
 }
 
 const (
-	POST_MESSAGE_URL = "https://slack.com/api/chat.postMessage"
+	POST_MESS_URL = "https://slack.com/api/chat.postMessage"
 	USER_INFO_URL    = "https://slack.com/api/users.info"
 	USER_LIST_URL    = "https://slack.com/api/users.list"
 )
@@ -58,51 +58,45 @@ type Client struct {
 }
 
 func NewClient(token string) Client {
-	client := Client{
-		token,
-	}
-
-	return client
+	return Client{token}
 }
 
-func (client Client) SendMessage(channel, text, botName string) MessageResponse {
+func (c Client) Post(channel, text, bot string) MessageResponse {
 	params := url.Values{}
-	params.Add("token", client.Token)
+	params.Add("token", c.Token)
 	params.Add("channel", channel)
 	params.Add("text", text)
-	params.Add("username", botName)
+	params.Add("username", bot)
 
-	endpoint := fmt.Sprintf("%s?%s", POST_MESSAGE_URL, params.Encode())
+	endpoint := fmt.Sprintf("%s?%s", POST_MESS_URL, params.Encode())
 
-	response, _ := http.Get(endpoint)
-	body, _ := ioutil.ReadAll(response.Body)
+	resp, _ := http.Get(endpoint)
+	body, _ := ioutil.ReadAll(resp.Body)
 
-	var messageResponse MessageResponse
-	json.Unmarshal(body, &messageResponse)
+	var reply MessageResponse
+	json.Unmarshal(body, &reply)
 
-	return messageResponse
+	return reply
 }
 
-func (client Client) GetUsers() UsersResponse {
+func (c Client) GetUsers() UsersResponse {
 	params := url.Values{}
-	params.Add("token", client.Token)
-
+	params.Add("token", c.Token)
 	endpoint := fmt.Sprintf("%s?%s", USER_LIST_URL, params.Encode())
 
 	response, _ := http.Get(endpoint)
 	body, _ := ioutil.ReadAll(response.Body)
 
-	var usersResponse UsersResponse
-	json.Unmarshal(body, &usersResponse)
+	var users UsersResponse
+	json.Unmarshal(body, &users)
 
-	return usersResponse
+	return users
 }
 
-func (client Client) GetUser(userId string) UserResponse {
+func (c Client) GetUser(id string) UserResponse {
 	v := url.Values{}
-	v.Add("token", client.Token)
-	v.Add("user", userId)
-
+	v.Add("token", c.Token)
+	v.Add("user", id)
 	uri := fmt.Sprintf("%s?%s", USER_INFO_URL, v.Encode())
 
 	// TODO: handle errors
